@@ -1,22 +1,66 @@
 import { DurableObject } from "cloudflare:workers";
+import { createClient, http } from "viem";
+import { base, baseSepolia, Chain } from "viem/chains";
+import { baseTestnetContracts, baseMainnetContracts } from "./config";
+import { ENTRYPOINT_ADDRESS_V06 } from "permissionless";
+import { paymasterActionsEip7677 } from "permissionless/experimental";
+import { willSponsor } from "./utils";
 
-/**
- * Welcome to Cloudflare Workers! This is your first Durable Objects application.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your Durable Object in action
- * - Run `npm run deploy` to publish your application
- *
- * Bind resources to your worker in `wrangler.toml`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/durable-objects
- */
+interface RequestData {
+	method: string;
+	params: [any, string, string];
+}
 
+export default {
+	async fetch(request: Request, env: Record<string, any>, ctx: ExecutionContext): Promise<Response> {
+		
+		const req = await request.json() as RequestData;
+		const method = req.method;
+		const [userOp, entrypoint, chainIdParam] = req.params;
+		let chain;
+		let chainId;
+		let transportUrl;
+		switch (chainIdParam) {
+			case "84532":
+				chain = baseSepolia;
+				chainId = baseSepolia.id;
+				transportUrl = env.TESTNET_PAYMASTER_SERVICE_URL;
+				break;
+			case "8453":
+				chain = base;
+				chainId = base.id;
+				transportUrl = env.PAYMASTER_SERVICE_URL;
+				break;
+			default:
+				return Response.json({ error: "Only Base ChainID 8453 and Base Sepolia ChainID 84532 are supported." });
+				break;
+		} 
 
-/**
- * Associate bindings declared in wrangler.toml with the TypeScript type system
- */
+		const paymasterClient = createClient({
+			chain: chain,
+			transport: http(transportUrl),
+		}).extend(paymasterActionsEip7677(ENTRYPOINT_ADDRESS_V06));
+
+		console.log(req.params);
+		if (!willSponsor({ chainId: chainId, entrypoint, userOp: userOp })) {
+			return Response.json({ error: "Not a sponsorable operation" });
+		}
+	
+		if (method === "pm_getPaymasterStubData") {
+			const result = await paymasterClient.getPaymasterStubData({
+				userOperation: userOp as any,
+			});
+			return Response.json({ result });
+		} else if (method === "pm_getPaymasterData") {
+			const result = await paymasterClient.getPaymasterData({
+				userOperation: userOp as any,
+			});
+			return Response.json({ result });
+		}
+		return Response.json({ error: "Method not found" });
+	}
+}
+
 export interface Env {
 	// Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
 	// MY_KV_NAMESPACE: KVNamespace;
@@ -58,29 +102,3 @@ export class MyDurableObject extends DurableObject {
 		return `Hello, ${name}!`;
 	}
 }
-
-export default {
-	/**
-	 * This is the standard fetch handler for a Cloudflare Worker
-	 *
-	 * @param request - The request submitted to the Worker from the client
-	 * @param env - The interface to reference bindings declared in wrangler.toml
-	 * @param ctx - The execution context of the Worker
-	 * @returns The response to be sent back to the client
-	 */
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		// We will create a `DurableObjectId` using the pathname from the Worker request
-		// This id refers to a unique instance of our 'MyDurableObject' class above
-		let id: DurableObjectId = env.MY_DURABLE_OBJECT.idFromName(new URL(request.url).pathname);
-
-		// This stub creates a communication channel with the Durable Object instance
-		// The Durable Object constructor will be invoked upon the first call for a given id
-		let stub = env.MY_DURABLE_OBJECT.get(id);
-
-		// We call the `sayHello()` RPC method on the stub to invoke the method on the remote
-		// Durable Object instance
-		let greeting = await stub.sayHello("world");
-
-		return new Response(greeting);
-	},
-};

@@ -12,5 +12,9 @@
     "@cloudflare/workers-types": "^4.20240512.0",
     "typescript": "^5.0.4",
     "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "permissionless": "^0.1.29",
+    "viem": "^2.12.0"
   }
 }
