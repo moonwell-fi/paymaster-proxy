@@ -36,6 +36,25 @@ export default {
 				break;
 		} 
 
+		let corsHeaders: any = {
+    }
+
+    let headersObject = Object.fromEntries(request.headers);
+    if (headersObject) {
+      corsHeaders['Access-Control-Allow-Origin'] = '*'
+      corsHeaders['Access-Control-Allow-Headers'] = 'X-Requested-With,Content-Type'
+      corsHeaders['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, PUT, DELETE'
+      corsHeaders['Access-Control-Allow-Credentials'] = 'true'
+    }
+
+    // If it's a GET request, return the requested data
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders
+      });
+    }
+
 		const paymasterClient = createClient({
 			chain: chain,
 			transport: http(transportUrl),
@@ -50,12 +69,12 @@ export default {
 			const result = await paymasterClient.getPaymasterStubData({
 				userOperation: userOp as any,
 			});
-			return Response.json({ result });
+			return Response.json({ result }, { status: 200, headers: corsHeaders });
 		} else if (method === "pm_getPaymasterData") {
 			const result = await paymasterClient.getPaymasterData({
 				userOperation: userOp as any,
 			});
-			return Response.json({ result });
+			return Response.json({ result }, { status: 200,headers: corsHeaders });
 		}
 		return Response.json({ error: "Method not found" });
 	}
