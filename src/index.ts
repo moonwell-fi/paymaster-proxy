@@ -15,23 +15,26 @@ export default {
 	async fetch(request: Request, env: Record<string, any>, ctx: ExecutionContext): Promise<Response> {
 		
 		const req = await request.json() as RequestData;
+		console.log(req);
 		const method = req.method;
+		console.log(req.params);
 		const [userOp, entrypoint, chainIdParam] = req.params;
 		let chain;
 		let chainId;
 		let transportUrl;
-		switch (chainIdParam) {
-			case "84532":
+		switch (parseInt(chainIdParam, 16)) {
+			case 84532:
 				chain = baseSepolia;
 				chainId = baseSepolia.id;
 				transportUrl = env.TESTNET_PAYMASTER_SERVICE_URL;
 				break;
-			case "8453":
+			case 8453:
 				chain = base;
 				chainId = base.id;
 				transportUrl = env.PAYMASTER_SERVICE_URL;
 				break;
 			default:
+				console.log("Only Base ChainID 8453 and Base Sepolia ChainID 84532 are supported.")
 				return Response.json({ error: "Only Base ChainID 8453 and Base Sepolia ChainID 84532 are supported." });
 				break;
 		} 
@@ -62,6 +65,7 @@ export default {
 
 		console.log(req.params);
 		if (!willSponsor({ chainId: chainId, entrypoint, userOp: userOp })) {
+			console.log("Not a sponsorable operation");
 			return Response.json({ error: "Not a sponsorable operation" });
 		}
 	
@@ -74,6 +78,7 @@ export default {
 			const result = await paymasterClient.getPaymasterData({
 				userOperation: userOp as any,
 			});
+			console.log({ result }, { status: 200,headers: corsHeaders });
 			return Response.json({ result }, { status: 200,headers: corsHeaders });
 		}
 		return Response.json({ error: "Method not found" });
