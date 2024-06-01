@@ -7,8 +7,13 @@ This repository contains the code for a Cloudflare Worker that can protect your 
 ## Features
 
 - **Gasless Transactions**: The proxy enables gasless transactions by interacting with the Paymaster service.
-- **Request Handling**: It processes incoming requests and forwards them to the appropriate services.
-- **Security**: Implements security measures to ensure only authorized requests are processed.
+- **Bundler Support**: Transactions can be bundled together to improve the user experience for users of your application, allowing common transactions like `approve` and `mint` to be bundled together.
+- **Contract Allowlist**: Implements security measures to ensure that calls to a set of smart contracts that you define are forwarded to your Paymaster, and calls that interact with other smart contracts are not.
+- **Security**: Allows you to safely put your Cloudflare Worker URL in your frontend code without exposing your Paymaster service URL.
+
+### Roadmap
+
+- **Durable Objects Storage**: I plan on adding support for Durable Objects, so you can implement more advanced policies that enable sponsoring a maximum number of transactions per wallet, per time period. This will allow you to implement more advanced policies that can help prevent abuse of your Paymaster service.
 
 ## Getting Started
 
@@ -59,6 +64,7 @@ The worker can be configured using environment variables. The following variable
 ### Additional Configuration
 
 - You must configure your allowed list of contract addresses in the following file: [config.ts](https://github.com/moonwell-fi/paymaster-proxy/blob/main/src/config.ts).
+- You must put the Cloudflare Worker URL in your frontend code. This is the URL that your application will send requests to.
 
 ## Usage
 
