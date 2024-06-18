@@ -36,4 +36,6 @@ export const baseMainnetContracts = [
   '0x65A633E8E379F9358C389c75ff1D913a92ab95B8', // Ecosystem Reserve Proxy
   '0xe66E3A37C3274Ac24FE8590f7D84A2427194DC17', // stkWELL Proxy
   '0xe0278B32c627FF6fFbbe7de6A18Ade145603e949', // Vote Collection Proxy
+  '0xc1256Ae5FF1cf2719D4937adb3bbCCab2E00A2Ca', // mwUSDC MetaMorpho Vault
+  '0x123f3167a416ca19365de03a65e0af3532af7223', // mwETH MetaMorpho Vault
 ]
