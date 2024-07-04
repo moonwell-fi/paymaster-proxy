@@ -39,4 +39,5 @@ export const baseMainnetContracts = [
   '0xc1256Ae5FF1cf2719D4937adb3bbCCab2E00A2Ca', // mwUSDC MetaMorpho Vault
   '0xa0E430870c4604CcfC7B38Ca7845B1FF653D0ff1', // mwETH MetaMorpho Vault
   '0x123f3167a416ca19365de03a65e0af3532af7223', // Morpho Bundler
+  '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb', // Morpho Markets Router
 ]
